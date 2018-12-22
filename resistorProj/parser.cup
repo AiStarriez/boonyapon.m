@@ -1,0 +1,108 @@
+/*
+   Resistor language; 
+*/
+
+package cup.example;
+
+import java_cup.runtime.*;
+import cup.example.Lexer;
+import java.io.IOException;
+import java.io.File;
+import java.io.FileInputStream;
+
+parser code {:
+  protected Lexer lexer;
+  public static double toNumber(Object color, String type) {
+		switch(color.toString()) {
+			case "black":
+				if(type.equals("mul"))
+					return 1.0;
+				return 0.0;
+			case "brown":
+				if(type.equals("mul"))
+					return 10.0;
+				return 1.0;
+			case "red":
+				if(type.equals("mul"))
+					return 100.0;
+				return 2.0;
+			case "orange":
+				if(type.equals("mul"))
+					return 1000.0;
+				return 3.0;
+			case "yellow":
+				if(type.equals("mul"))
+					return 10000.0;
+				return 4.0;
+			case "green":
+				if(type.equals("mul"))
+					return 100000.0;
+				return 5.0;
+			case "blue":
+				if(type.equals("mul"))
+					return 1000000.0;
+				return 6.0;
+			case "puple":
+				return 7.0;
+			case "gray":
+				return 8.0;
+			case "white":
+				return 9.0;
+			case "gold":
+				if(type.equals("mul"))
+					return 0.1;
+				if(type.equals("tol"))
+					return 5.0;
+			case "silver":
+				if(type.equals("mul"))
+					return 0.01;
+				if(type.equals("tol"))
+					return 10.0;
+			default:
+				return 0.0;
+		}
+	}
+:};
+
+/* define how to connect to the scanner! */
+init with {:
+  ComplexSymbolFactory f = new ComplexSymbolFactory();
+  symbolFactory = f;
+  File file = new File("input.txt");
+  FileInputStream fis = null;
+  try {
+    fis = new FileInputStream(file);
+  } catch (IOException e) {
+    e.printStackTrace();
+  } 
+  lexer = new Lexer(f,fis);
+
+:};
+scan with {: return lexer.next_token(); :};
+
+/* Terminals (tokens returned by the scanner). */
+terminal            SPACE, COLOR, MUL, TOL, SEMI;
+
+/* Non terminals */
+non terminal			s;
+non terminal			resistor;
+non terminal			digit_color;
+non terminal			option_color;
+
+/* Precedences */
+precedence left SPACE, COLOR, MUL, TOL, SEMI;
+
+/* The grammar rules */
+
+s				::=		resistor:r						{: System.out.println(r); :}
+				|		s SPACE resistor:r			{: System.out.println(r); :}
+				;
+
+resistor		::=		digit_color:d SEMI	{: RESULT = d + "; "; :}
+            	;
+            
+digit_color		::=		COLOR:c1 SPACE COLOR:c2 SPACE COLOR:c3 SPACE COLOR:c4 SPACE COLOR:c5	{: RESULT = Double.toString( (toNumber(c1,"")*100 + toNumber(c2,"")*10 + toNumber(c3,"")) * toNumber(c4,"mul") ) + " torelance: " + Double.toString(toNumber(c5,"tol")) + "%"; :}
+				|		COLOR:c1 SPACE COLOR:c2 SPACE COLOR:c3 SPACE COLOR:c4	{: RESULT = Double.toString( (toNumber(c1,"")*10 + toNumber(c2,"")) * toNumber(c3,"mul") ) + " torelance: " + Double.toString(toNumber(c4,"tol")) + "%"; :}
+				;
+				
+	
